@@ -1,0 +1,106 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: developer
+      changes:
+        - createSchema:
+            schemaName: myschema
+
+  - changeSet:
+      id: 2
+      author: developer
+      changes:
+        - createTable:
+            schemaName: myschema
+            tableName: task
+            remarks: "Table for tasks"
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: question
+                  type: TEXT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: VARCHAR(1000)
+
+  - changeSet:
+      id: 3
+      author: developer
+      changes:
+        - createTable:
+            schemaName: myschema
+            tableName: response
+            remarks: "Table for responses"
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: answer
+                  type: TEXT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: VARCHAR(1000)
+
+  - changeSet:
+      id: 4
+      author: developer
+      changes:
+        - createTable:
+            schemaName: myschema
+            tableName: request
+            remarks: "Table for requests"
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: response_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_request_response
+                    references: myschema.response(id)
+              - column:
+                  name: task_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_request_task
+                    references: myschema.task(id)
+              - column:
+                  name: description
+                  type: VARCHAR(1000)
+
+  - changeSet:
+      id: 5
+      author: developer
+      changes:
+        - addUniqueConstraint:
+            schemaName: myschema
+            tableName: request
+            columnNames: task_id
+            constraintName: uk_request_task_id
+        - addUniqueConstraint:
+            schemaName: myschema
+            tableName: request
+            columnNames: response_id
+            constraintName: uk_request_response_id
