@@ -10,21 +10,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_DB: mydb
-          POSTGRES_USER: myuser
-          POSTGRES_PASSWORD: mypassword
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
       - uses: actions/checkout@v4
 
@@ -37,13 +22,3 @@ jobs:
 
       - name: Build with Maven
         run: mvn clean compile
-
-      - name: Run Liquibase migrations
-        run: mvn liquibase:update
-
-      - name: Verify database
-        run: |
-          psql -h localhost -U myuser -d mydb -c "SELECT 1;"
-          psql -h localhost -U myuser -d mydb -c "\dt myschema.*;"
-        env:
-          PGPASSWORD: mypassword

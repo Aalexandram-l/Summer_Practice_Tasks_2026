@@ -36,4 +36,18 @@ class DatabaseTest {
             }
         }
     }
+
+    @Test
+    void testConstraintsExist() throws SQLException {
+        try (Connection conn = DriverManager.getConnection(
+                "jdbc:postgresql://localhost:5432/mydb",
+                "myuser", "mypassword")) {
+            try (Statement stmt = conn.createStatement()) {
+                ResultSet rs = stmt.executeQuery(
+                    "SELECT constraint_name, constraint_type FROM information_schema.table_constraints WHERE table_schema = 'myschema'"
+                );
+                assertTrue(rs.next());
+            }
+        }
+    }
 }

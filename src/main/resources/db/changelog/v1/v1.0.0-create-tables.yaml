@@ -1,14 +1,14 @@
 databaseChangeLog:
   - changeSet:
       id: 1
-      author: developer
+      author: aalexandram-l
       changes:
         - sql:
             sql: CREATE SCHEMA IF NOT EXISTS myschema
 
   - changeSet:
       id: 2
-      author: developer
+      author: aalexandram-l
       changes:
         - createTable:
             schemaName: myschema
@@ -33,7 +33,7 @@ databaseChangeLog:
 
   - changeSet:
       id: 3
-      author: developer
+      author: aalexandram-l
       changes:
         - createTable:
             schemaName: myschema
@@ -58,7 +58,7 @@ databaseChangeLog:
 
   - changeSet:
       id: 4
-      author: developer
+      author: aalexandram-l
       changes:
         - createTable:
             schemaName: myschema
@@ -92,9 +92,15 @@ databaseChangeLog:
 
   - changeSet:
       id: 5
-      author: developer
+      author: aalexandram-l
       changes:
-        - sql:
-            sql: ALTER TABLE myschema.request ADD CONSTRAINT uk_request_task_id UNIQUE (task_id)
-        - sql:
-            sql: ALTER TABLE myschema.request ADD CONSTRAINT uk_request_response_id UNIQUE (response_id)
+        - addUniqueConstraint:
+            schemaName: myschema
+            tableName: request
+            columnNames: task_id
+            constraintName: uk_request_task_id
+        - addUniqueConstraint:
+            schemaName: myschema
+            tableName: request
+            columnNames: response_id
+            constraintName: uk_request_response_id
