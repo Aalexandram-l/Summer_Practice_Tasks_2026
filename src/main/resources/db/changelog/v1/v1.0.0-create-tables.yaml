@@ -1,14 +1,14 @@
 databaseChangeLog:
   - changeSet:
       id: 1
-      author: developer
+      author: aalexandram-l
       changes:
-        - createSchema:
-            schemaName: myschema
+        - sql:
+            sql: CREATE SCHEMA IF NOT EXISTS myschema
 
   - changeSet:
       id: 2
-      author: developer
+      author: aalexandram-l
       changes:
         - createTable:
             schemaName: myschema
@@ -33,7 +33,7 @@ databaseChangeLog:
 
   - changeSet:
       id: 3
-      author: developer
+      author: aalexandram-l
       changes:
         - createTable:
             schemaName: myschema
@@ -58,7 +58,7 @@ databaseChangeLog:
 
   - changeSet:
       id: 4
-      author: developer
+      author: aalexandram-l
       changes:
         - createTable:
             schemaName: myschema
@@ -92,7 +92,7 @@ databaseChangeLog:
 
   - changeSet:
       id: 5
-      author: developer
+      author: aalexandram-l
       changes:
         - addUniqueConstraint:
             schemaName: myschema
