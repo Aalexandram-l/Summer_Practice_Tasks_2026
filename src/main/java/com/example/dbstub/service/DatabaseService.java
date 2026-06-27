@@ -1,0 +1,50 @@
+package com.example.dbstub.service;
+
+import com.example.dbstub.entity.Task;
+import com.example.dbstub.entity.Response;
+import com.example.dbstub.entity.Request;
+import com.example.dbstub.repository.TaskRepository;
+import com.example.dbstub.repository.ResponseRepository;
+import com.example.dbstub.repository.RequestRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class DatabaseService {
+
+    private final TaskRepository taskRepository;
+    private final ResponseRepository responseRepository;
+    private final RequestRepository requestRepository;
+
+    private static final String DEFAULT_RESPONSE = "The request has not yet been processed.";
+
+    @Transactional
+    public Request saveText(String text) {
+        log.info("Saving text to database: {}", text);
+
+        Task task = new Task();
+        task.setQuestion(text);
+        task.setDescription("Original text");
+        Task savedTask = taskRepository.save(task);
+        log.info("Task saved with id: {}", savedTask.getId());
+
+        Response response = new Response();
+        response.setAnswer(DEFAULT_RESPONSE);
+        response.setDescription("Not processed yet");
+        Response savedResponse = responseRepository.save(response);
+        log.info("Response saved with id: {}", savedResponse.getId());
+
+        Request request = new Request();
+        request.setTask(savedTask);
+        request.setResponse(savedResponse);
+        request.setDescription("Request linking task and response");
+        Request savedRequest = requestRepository.save(request);
+        log.info("Request saved with id: {}", savedRequest.getId());
+
+        return savedRequest;
+    }
+}
