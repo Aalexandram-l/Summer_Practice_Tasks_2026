@@ -14,11 +14,13 @@ public class AiService {
 
     private final YandexGptClient yandexGptClient;
     private final KeywordExtractorService keywordExtractorService;
+    private final DatabaseService databaseService;
 
     private String lastAiResponse = "";
 
     public String processWithAI(String text) {
         log.info("Processing text: {}", text);
+
         Map<String, Integer> keywords = keywordExtractorService.extractKeywords(text);
 
         if (!keywords.isEmpty()) {
@@ -26,15 +28,19 @@ public class AiService {
             String prompt = "Based on these keywords: " + keywords + ", generate a detailed response in Russian.";
             String response = yandexGptClient.sendRequest(prompt);
             this.lastAiResponse = response;
-            log.info("AI response (Case 1): {}", response);
+            log.info("AI response: {}", response);
             return response;
         }
 
-        log.info("No keywords found, sending full text (Case 2)");
-        String response = yandexGptClient.sendRequest(text);
-        this.lastAiResponse = response;
-        log.info("AI response (Case 2): {}", response);
-        return response;
+        log.warn("No keywords found for text: {}", text);
+
+        String errorMessage = "No keywords found in request: " + text;
+        databaseService.saveError(text, errorMessage);
+
+        this.lastAiResponse = "Error: " + errorMessage;
+        log.error("No {}", errorMessage);
+
+        return "Error: " + errorMessage;
     }
 
     public String getLastAiResponse() {
