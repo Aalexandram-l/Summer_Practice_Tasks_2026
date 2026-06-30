@@ -47,4 +47,19 @@ public class DatabaseService {
 
         return savedRequest;
     }
+
+    @Transactional
+    public void updateResponse(Long requestId, String aiAnswer) {
+        log.info("Updating response for request id: {}", requestId);
+
+        Request request = requestRepository.findById(requestId)
+                .orElseThrow(() -> new RuntimeException("Request not found with id: " + requestId));
+
+        Response response = request.getResponse();
+        response.setAnswer(aiAnswer);
+        response.setDescription("Processed by Yandex GPT");
+        responseRepository.save(response);
+
+        log.info("Response updated for request id: {}", requestId);
+    }
 }
