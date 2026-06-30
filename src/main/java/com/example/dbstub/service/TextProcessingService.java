@@ -18,8 +18,13 @@ public class TextProcessingService {
         log.info("Processing text via REST: {}", text);
 
         Request savedRequest = databaseService.saveText(text);
+        log.info("Saved request with id: {}", savedRequest.getId());
+
         String aiResponse = aiService.processWithAI(text);
+        log.info("AI response: {}", aiResponse);
+
         databaseService.updateResponse(savedRequest.getId(), aiResponse);
+        log.info("AI response saved to DB for request {}", savedRequest.getId());
 
         return new TextResponse(
             savedRequest.getId(),
@@ -33,8 +38,13 @@ public class TextProcessingService {
         log.info("Processing text via Kafka: {}", text);
 
         Request savedRequest = databaseService.saveText(text);
+        log.info("Saved request with id: {}", savedRequest.getId());
+
         String aiResponse = aiService.processWithAI(text);
+        log.info("AI response for Kafka: {}", aiResponse);
+
         databaseService.updateResponse(savedRequest.getId(), aiResponse);
+        log.info("AI response saved to DB for request {}", savedRequest.getId());
 
         return aiResponse;
     }

@@ -9,30 +9,61 @@ out/
 # Log files
 *.log
 logs/
+log/
+
+# Maven
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
 
 # IDE files
 .idea/
 *.iml
+*.iws
+*.ipr
 .vscode/
 .settings/
 .classpath
 .project
+.factorypath
+*.swp
+*.swo
+*~
 
 # OS files
 .DS_Store
 Thumbs.db
+desktop.ini
 
 # Docker
 docker-compose.override.yml
 *.pid
+*.sock
 
 # Database
 *.db
 *.sqlite
+*.dump
+*.dmp
 
-# Environment
+# Test results
+test-output/
+surefire-reports/
+failsafe-reports/
+
+# Application specific
+application-local.yml
+application-dev.yml
+*.properties
 .env
 .env.local
-.env
+
+# Kafka
 kafka_2.13-3.9.2.tgz
 kafka_2.13-3.9.2/

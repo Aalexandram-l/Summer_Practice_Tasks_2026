@@ -41,7 +41,6 @@ public class YandexGptClient {
         }
 
         String url = "https://ai.api.cloud.yandex.net/v1/chat/completions";
-
         String model = "gpt://b1gta9m73hnooopmbqkt/yandexgpt-4-lite/latest";
 
         String escapedText = text.replace("\"", "\\\"");
@@ -59,10 +58,6 @@ public class YandexGptClient {
                     "max_tokens": 500
                 }
                 """, model, escapedText);
-
-        log.info("URL: {}", url);
-        log.info("Model: {}", model);
-        log.info("Request body: {}", requestBody);
 
         try {
             String response = webClient.post()
