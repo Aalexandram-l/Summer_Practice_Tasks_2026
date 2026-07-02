@@ -11,10 +11,10 @@ import org.springframework.web.reactive.function.client.WebClient;
 @Slf4j
 public class YandexGptClient {
 
-    @Value("${yandex.gpt.api.key}")
+    @Value("${yandex.gpt.api.key:}")
     private String apiKey;
 
-    @Value("${yandex.gpt.folder.id}")
+    @Value("${yandex.gpt.folder.id:}")
     private String folderId;
 
     private final WebClient webClient;
@@ -28,25 +28,41 @@ public class YandexGptClient {
     public String sendRequest(String text) {
         log.info("Sending request to Yandex GPT: {}", text);
 
-        if (apiKey.isEmpty() || apiKey.equals("your-api-key-here")) {
-            log.warn("Yandex GPT API key not found, using mock");
-            return "Mock response for: " + text;
+        if (apiKey == null || apiKey.isEmpty()) {
+            String error = "ERROR: Yandex GPT API key is not configured. Please set YANDEX_GPT_API_KEY environment variable.";
+            log.error("{}", error);
+            return error;
         }
 
-        String url = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion";
+        if (folderId == null || folderId.isEmpty()) {
+            String error = "ERROR: Yandex GPT folder ID is not configured. Please set YANDEX_GPT_FOLDER_ID environment variable.";
+            log.error("{}", error);
+            return error;
+        }
+
+        String url = "https://ai.api.cloud.yandex.net/v1/chat/completions";
+
+        String model = "gpt://b1gta9m73hnooopmbqkt/yandexgpt-4-lite/latest";
+
+        String escapedText = text.replace("\"", "\\\"");
 
         String requestBody = String.format("""
                 {
-                    "modelUri": "gpt://%s/yandexgpt-lite",
-                    "completionOptions": {
-                        "temperature": 0.7,
-                        "maxTokens": 500
-                    },
+                    "model": "%s",
                     "messages": [
-                        {"role": "user", "text": "%s"}
-                    ]
+                        {
+                            "role": "user",
+                            "content": "%s"
+                        }
+                    ],
+                    "temperature": 0.6,
+                    "max_tokens": 500
                 }
-                """, folderId, text);
+                """, model, escapedText);
+
+        log.info("URL: {}", url);
+        log.info("Model: {}", model);
+        log.info("Request body: {}", requestBody);
 
         try {
             String response = webClient.post()
@@ -62,11 +78,10 @@ public class YandexGptClient {
 
             JsonNode root = objectMapper.readTree(response);
             String aiMessage = root
-                    .path("result")
-                    .path("alternatives")
+                    .path("choices")
                     .path(0)
                     .path("message")
-                    .path("text")
+                    .path("content")
                     .asText();
 
             log.info("AI message: {}", aiMessage);
@@ -74,7 +89,7 @@ public class YandexGptClient {
 
         } catch (Exception e) {
             log.error("Error calling Yandex GPT: {}", e.getMessage());
-            return "Error: " + e.getMessage();
+            return "ERROR: " + e.getMessage();
         }
     }
 }
