@@ -12,17 +12,25 @@ import org.springframework.stereotype.Service;
 public class TextProcessingService {
 
     private final DatabaseService databaseService;
+    private final AiService aiService;
 
     public TextResponse processText(String text) {
         log.info("Processing text: {}", text);
 
         Request savedRequest = databaseService.saveText(text);
+        log.info("Saved request with id: {}", savedRequest.getId());
+
+        String aiResponse = aiService.processWithAI(text);
+        log.info("AI response for request {}: {}", savedRequest.getId(), aiResponse);
+
+        databaseService.updateResponse(savedRequest.getId(), aiResponse);
+        log.info("AI response saved to DB for request {}", savedRequest.getId());
 
         return new TextResponse(
             savedRequest.getId(),
             savedRequest.getTask().getQuestion(),
-            savedRequest.getResponse().getAnswer(),
-            "PENDING"
+            aiResponse,
+            "COMPLETED"
         );
     }
 }
