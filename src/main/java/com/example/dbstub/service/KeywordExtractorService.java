@@ -17,6 +17,31 @@ public class KeywordExtractorService {
         "было", "были", "будет", "будут"
     );
 
+    private static final String DIGITS_ONLY = "^[0-9]+$";
+
+    private static final String MEANINGLESS = "^[a-zA-Zа-яА-Я]+$";
+
+    public boolean isValid(String text) {
+        if (text == null || text.trim().isEmpty()) {
+            log.warn("Text is null or empty");
+            return false;
+        }
+
+        String trimmed = text.trim();
+
+        if (trimmed.matches(DIGITS_ONLY)) {
+            log.warn("Text contains only digits: {}", trimmed);
+            return false;
+        }
+
+        if (trimmed.length() < 3) {
+            log.warn("Text is too short: {}", trimmed);
+            return false;
+        }
+
+        return true;
+    }
+
     public Map<String, Integer> extractKeywords(String text) {
         log.info("Extracting keywords from: {}", text);
 
