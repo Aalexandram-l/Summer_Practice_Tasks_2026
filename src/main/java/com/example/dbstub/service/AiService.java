@@ -14,29 +14,37 @@ public class AiService {
 
     private final YandexGptClient yandexGptClient;
     private final KeywordExtractorService keywordExtractorService;
+    private final DatabaseService databaseService;
 
     private String lastAiResponse = "";
 
     public String processWithAI(String text) {
         log.info("Processing text: {}", text);
 
-        Map<String, Integer> keywords = keywordExtractorService.extractKeywords(text);
+        if (!keywordExtractorService.isValid(text)) {
+            log.warn("Invalid text: {}", text);
+            String errorMessage = "Invalid text: " + text;
+            databaseService.saveError(text, errorMessage);
+            this.lastAiResponse = "Error: " + errorMessage;
+            log.error("{}", errorMessage);
+            return "Error: " + errorMessage;
+        }
 
-        String response;
+        Map<String, Integer> keywords = keywordExtractorService.extractKeywords(text);
 
         if (!keywords.isEmpty()) {
             log.info("Keywords found: {}", keywords);
             String prompt = "Based on these keywords: " + keywords + ", generate a detailed response in Russian.";
-            response = yandexGptClient.sendRequest(prompt);
+            String response = yandexGptClient.sendRequest(prompt);
             this.lastAiResponse = response;
-            log.info("AI response: {}", response);
+            log.info("AI response (Case 1): {}", response);
             return response;
         }
 
-        log.info("No keywords found, sending full text");
-        response = yandexGptClient.sendRequest(text);
+        log.info("No keywords found, sending full text (Case 2)");
+        String response = yandexGptClient.sendRequest(text);
         this.lastAiResponse = response;
-        log.info("AI response: {}", response);
+        log.info("AI response (Case 2): {}", response);
         return response;
     }
 
