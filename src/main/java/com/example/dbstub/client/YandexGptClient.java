@@ -59,6 +59,10 @@ public class YandexGptClient {
                 }
                 """, model, escapedText);
 
+        log.info("URL: {}", url);
+        log.info("Model: {}", model);
+        log.info("Request body: {}", requestBody);
+
         try {
             String response = webClient.post()
                     .uri(url)
