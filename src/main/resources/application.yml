@@ -28,7 +28,21 @@ spring:
     default-schema: myschema
     drop-first: false
 
+  kafka:
+    consumer:
+      enabled: false
+
+server:
+  port: 8080
+
 logging:
   level:
     root: INFO
     com.example: DEBUG
+
+yandex:
+  gpt:
+    api:
+      key: ${YANDEX_GPT_API_KEY}
+    folder:
+      id: ${YANDEX_GPT_FOLDER_ID}
