@@ -6,6 +6,7 @@ import com.example.dbstub.entity.Request;
 import com.example.dbstub.repository.TaskRepository;
 import com.example.dbstub.repository.ResponseRepository;
 import com.example.dbstub.repository.RequestRepository;
+import com.example.dbstub.exception.DbException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -53,7 +54,7 @@ public class DatabaseService {
         log.info("Updating response for request id: {}", requestId);
 
         Request request = requestRepository.findById(requestId)
-                .orElseThrow(() -> new RuntimeException("Request not found with id: " + requestId));
+                .orElseThrow(() -> new DbException("Request not found with id: " + requestId));
 
         Response response = request.getResponse();
         response.setAnswer(aiAnswer);
@@ -62,7 +63,8 @@ public class DatabaseService {
 
         log.info("Response updated for request id: {}", requestId);
     }
-        @Transactional
+
+    @Transactional
     public void saveError(String text, String errorMessage) {
         log.info("Saving error to database: {}", errorMessage);
 
@@ -88,6 +90,6 @@ public class DatabaseService {
 
     public Request getRequestById(Long id) {
         return requestRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Request not found with id: " + id));
+                .orElseThrow(() -> new DbException("Request not found with id: " + id));
     }
 }
