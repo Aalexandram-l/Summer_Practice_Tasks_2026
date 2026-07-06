@@ -6,6 +6,7 @@ import com.example.dbstub.entity.Request;
 import com.example.dbstub.repository.TaskRepository;
 import com.example.dbstub.repository.ResponseRepository;
 import com.example.dbstub.repository.RequestRepository;
+import com.example.dbstub.exception.DbException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -53,7 +54,7 @@ public class DatabaseService {
         log.info("Updating response for request id: {}", requestId);
 
         Request request = requestRepository.findById(requestId)
-                .orElseThrow(() -> new RuntimeException("Request not found with id: " + requestId));
+                .orElseThrow(() -> new DbException("Request not found with id: " + requestId));
 
         Response response = request.getResponse();
         response.setAnswer(aiAnswer);
@@ -61,5 +62,34 @@ public class DatabaseService {
         responseRepository.save(response);
 
         log.info("Response updated for request id: {}", requestId);
+    }
+
+    @Transactional
+    public void saveError(String text, String errorMessage) {
+        log.info("Saving error to database: {}", errorMessage);
+
+        Task task = new Task();
+        task.setQuestion(text);
+        task.setDescription("ERROR: " + errorMessage);
+        Task savedTask = taskRepository.save(task);
+        log.info("Task saved with id: {}", savedTask.getId());
+
+        Response response = new Response();
+        response.setAnswer("ERROR: " + errorMessage);
+        response.setDescription("Error - no keywords found");
+        Response savedResponse = responseRepository.save(response);
+        log.info("Error response saved with id: {}", savedResponse.getId());
+
+        Request request = new Request();
+        request.setTask(savedTask);
+        request.setResponse(savedResponse);
+        request.setDescription("Request with error: no keywords found");
+        Request savedRequest = requestRepository.save(request);
+        log.info("Error request saved with id: {}", savedRequest.getId());
+    }
+
+    public Request getRequestById(Long id) {
+        return requestRepository.findById(id)
+                .orElseThrow(() -> new DbException("Request not found with id: " + id));
     }
 }
