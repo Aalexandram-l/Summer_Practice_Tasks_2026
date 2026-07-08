@@ -15,13 +15,13 @@ public class TextProcessingService {
     private final AiService aiService;
 
     public TextResponse processText(String text) {
-        log.info("Processing text: {}", text);
+        log.info("Processing text via REST: {}", text);
 
         Request savedRequest = databaseService.saveText(text);
         log.info("Saved request with id: {}", savedRequest.getId());
 
         String aiResponse = aiService.processWithAI(text);
-        log.info("AI response for request {}: {}", savedRequest.getId(), aiResponse);
+        log.info("AI response: {}", aiResponse);
 
         databaseService.updateResponse(savedRequest.getId(), aiResponse);
         log.info("AI response saved to DB for request {}", savedRequest.getId());
@@ -32,5 +32,20 @@ public class TextProcessingService {
             aiResponse,
             "COMPLETED"
         );
+    }
+
+    public String processRawText(String text) {
+        log.info("Processing text via Kafka: {}", text);
+
+        Request savedRequest = databaseService.saveText(text);
+        log.info("Saved request with id: {}", savedRequest.getId());
+
+        String aiResponse = aiService.processWithAI(text);
+        log.info("AI response for Kafka: {}", aiResponse);
+
+        databaseService.updateResponse(savedRequest.getId(), aiResponse);
+        log.info("AI response saved to DB for request {}", savedRequest.getId());
+
+        return aiResponse;
     }
 }

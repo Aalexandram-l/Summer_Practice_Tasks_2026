@@ -29,8 +29,15 @@ spring:
     drop-first: false
 
   kafka:
+    bootstrap-servers: localhost:9092
     consumer:
-      enabled: false
+      group-id: text-consumer-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
 
 server:
   port: 8080
@@ -40,9 +47,17 @@ logging:
     root: INFO
     com.example: DEBUG
 
+app:
+  kafka:
+    topic:
+      input: text-input
+      output: text-output
+      error: text-error
+    poll-interval: 5000
+
 yandex:
   gpt:
     api:
-      key: ${YANDEX_GPT_API_KEY}
+      key: ${YANDEX_GPT_API_KEY:}
     folder:
-      id: ${YANDEX_GPT_FOLDER_ID}
+      id: ${YANDEX_GPT_FOLDER_ID:}
