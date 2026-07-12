@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>История запросов</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+        }
+        .card {
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            border: none;
+        }
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px 20px 0 0 !important;
+            padding: 20px 30px;
+        }
+        .btn-back {
+            background: white;
+            color: #667eea;
+            border: none;
+            border-radius: 10px;
+            padding: 8px 20px;
+        }
+        .btn-back:hover {
+            transform: scale(1.02);
+            transition: 0.3s;
+            background: #f8f9fa;
+        }
+        .table {
+            margin-bottom: 0;
+        }
+        .table th {
+            background: #f8f9fa;
+            border-bottom: 2px solid #667eea;
+        }
+        .table td {
+            vertical-align: middle;
+        }
+        .badge-status {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .badge-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .badge-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .text-truncate {
+            max-width: 250px;
+            display: inline-block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+        .empty-state .emoji {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        .answer-preview {
+            max-width: 300px;
+            display: inline-block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                    <h3 class="mb-0">История запросов</h3>
+                    <small>Всего записей: <span th:text="${requests.size()}">0</span></small>
+                </div>
+                <a href="/" class="btn btn-back">На главную</a>
+            </div>
+            <div class="card-body p-0">
+                <div th:if="${requests.isEmpty()}" class="empty-state">
+                    <div class="emoji">📭</div>
+                    <h4>Нет записей</h4>
+                    <p class="text-muted">Пока нет ни одного запроса. <a href="/">Создайте первый!</a></p>
+                </div>
+                
+                <div th:unless="${requests.isEmpty()}">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Текст</th>
+                                    <th>Ответ</th>
+                                    <th>Статус</th>
+                                    <th>Действие</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="req : ${requests}">
+                                    <td>
+                                        <strong th:text="${req.id}">1</strong>
+                                    </td>
+                                    <td>
+                                        <span class="text-truncate" th:text="${req.task.question}" 
+                                              title="${req.task.question}">Текст</span>
+                                    </td>
+                                    <td>
+                                        <span class="answer-preview" th:text="${req.response.answer}" 
+                                              title="${req.response.answer}">Ответ</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge-status badge-success" 
+                                              th:if="${req.response.answer != 'The request has not yet been processed.'}">
+                                            Готово
+                                        </span>
+                                        <span class="badge-status badge-pending" 
+                                              th:unless="${req.response.answer != 'The request has not yet been processed.'}">
+                                            В обработке
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a th:href="'/get/' + ${req.id}" class="btn btn-sm btn-outline-primary">
+                                            Подробнее
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

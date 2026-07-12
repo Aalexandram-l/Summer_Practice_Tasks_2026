@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Text Processor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+        }
+        .card {
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            border: none;
+        }
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px 20px 0 0 !important;
+            padding: 30px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+        .btn-primary:hover {
+            transform: scale(1.02);
+            transition: 0.3s;
+        }
+        .btn-outline-secondary:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        .result-box {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            display: none;
+        }
+        .result-box p {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+        .result-box strong {
+            color: #667eea;
+        }
+        .result-box ul, .result-box ol {
+            padding-left: 20px;
+        }
+        .loading {
+            display: none;
+        }
+        .badge-kafka {
+            background: #ff6b6b;
+            color: white;
+        }
+        .badge-ai {
+            background: #4ecdc4;
+            color: white;
+        }
+        .badge-db {
+            background: #45b7d1;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-header text-center">
+                <h2>AI Text Processor</h2>
+                <p class="mb-0">Обработка текста через YandexGPT + RPC</p>
+                <div class="mt-2">
+                    <span class="badge badge-kafka">Kafka</span>
+                    <span class="badge badge-ai">AI</span>
+                    <span class="badge badge-db">Database</span>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <div class="mb-4">
+                    <label for="textInput" class="form-label fw-bold">Введите текст:</label>
+                    <textarea id="textInput" class="form-control" rows="4" 
+                              placeholder="Введите текст для обработки..."></textarea>
+                </div>
+                
+                <button id="processBtn" class="btn btn-primary btn-lg w-100 mb-3">
+                    Обработать текст
+                </button>
+                
+                <div id="loading" class="loading text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Загрузка...</span>
+                    </div>
+                    <p class="mt-2">Обработка запроса...</p>
+                </div>
+                
+                <div id="resultBox" class="result-box">
+                    <h5>Результат:</h5>
+                    <div id="resultContent"></div>
+                    <small id="requestIdText" class="text-muted"></small>
+                </div>
+                
+                <div id="errorBox" class="result-box" style="border-left: 4px solid #dc3545; display: none;">
+                    <h5>Ошибка:</h5>
+                    <p id="errorText" class="card-text text-danger"></p>
+                </div>
+                
+                <hr>
+                
+                <div class="row">
+                    <div class="col-6">
+                        <a href="/history" class="btn btn-outline-secondary w-100">
+                            История запросов
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <div class="input-group">
+                            <input id="idInput" type="text" class="form-control" placeholder="ID">
+                            <button id="getByIdBtn" class="btn btn-outline-primary">Найти</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function formatMarkdown(text) {
+            if (!text) return '';
+            
+            text = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            
+            text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            
+            text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            
+            text = text.replace(/^### (.*)$/gm, '<h4 class="mt-3">$1</h4>');
+            text = text.replace(/^## (.*)$/gm, '<h3 class="mt-3">$1</h3>');
+            text = text.replace(/^# (.*)$/gm, '<h2 class="mt-3">$1</h2>');
+            
+            let lines = text.split('\n');
+            let result = [];
+            let inList = false;
+            
+            for (let line of lines) {
+                if (line.match(/^[\-*•]\s+/)) {
+                    if (!inList) {
+                        result.push('<ul>');
+                        inList = true;
+                    }
+                    result.push('<li>' + line.replace(/^[\-*•]\s+/, '') + '</li>');
+                } else {
+                    if (inList) {
+                        result.push('</ul>');
+                        inList = false;
+                    }
+                    if (line.trim()) {
+                        result.push('<p>' + line + '</p>');
+                    }
+                }
+            }
+            if (inList) {
+                result.push('</ul>');
+            }
+            
+            return result.join('\n');
+        }
+
+        const processBtn = document.getElementById('processBtn');
+        const textInput = document.getElementById('textInput');
+        const loading = document.getElementById('loading');
+        const resultBox = document.getElementById('resultBox');
+        const errorBox = document.getElementById('errorBox');
+        const resultContent = document.getElementById('resultContent');
+        const errorText = document.getElementById('errorText');
+        const requestIdText = document.getElementById('requestIdText');
+        const getByIdBtn = document.getElementById('getByIdBtn');
+        const idInput = document.getElementById('idInput');
+
+        function showResult(response) {
+            loading.style.display = 'none';
+            errorBox.style.display = 'none';
+            resultBox.style.display = 'block';
+            
+            if (response.status === 'SUCCESS') {
+                resultContent.innerHTML = formatMarkdown(response.payload);
+                requestIdText.textContent = 'Request ID: ' + response.requestId;
+                resultBox.style.borderLeft = '4px solid #28a745';
+            } else {
+                resultContent.innerHTML = '';
+                errorBox.style.display = 'block';
+                errorText.textContent = response.errorMessage;
+                requestIdText.textContent = '';
+                resultBox.style.borderLeft = '4px solid #dc3545';
+            }
+        }
+
+        processBtn.addEventListener('click', async () => {
+            const text = textInput.value.trim();
+            if (!text) {
+                alert('Введите текст');
+                return;
+            }
+            
+            loading.style.display = 'block';
+            resultBox.style.display = 'none';
+            errorBox.style.display = 'none';
+            
+            try {
+                const formData = new FormData();
+                formData.append('text', text);
+                
+                const response = await fetch('/process', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                showResult(data);
+            } catch (error) {
+                loading.style.display = 'none';
+                errorBox.style.display = 'block';
+                errorText.textContent = error.message;
+            }
+        });
+
+        getByIdBtn.addEventListener('click', async () => {
+            const id = idInput.value.trim();
+            if (!id) {
+                alert('Введите ID');
+                return;
+            }
+            
+            loading.style.display = 'block';
+            resultBox.style.display = 'none';
+            errorBox.style.display = 'none';
+            
+            try {
+                const response = await fetch('/get/' + id);
+                const data = await response.json();
+                loading.style.display = 'none';
+                showResult(data);
+            } catch (error) {
+                loading.style.display = 'none';
+                errorBox.style.display = 'block';
+                errorText.textContent = error.message;
+            }
+        });
+
+        textInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                processBtn.click();
+            }
+        });
+
+        idInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                getByIdBtn.click();
+            }
+        });
+    </script>
+</body>
+</html>
